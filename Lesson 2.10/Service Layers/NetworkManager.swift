@@ -9,6 +9,7 @@ import UIKit
 
 class NetworkManager {
     static let shared = NetworkManager()
+    
     typealias Handler = (Result<YandexWeather, Error>) -> Void
     
     init() {}
@@ -29,7 +30,6 @@ class NetworkManager {
         URLSession.shared.dataTask(with: urlRequest) { data, _, error in
             guard let data = data else {
                 handler(.failure(error!))
-                print(error?.localizedDescription ?? "No error description")
                 return
             }
             do {
@@ -39,7 +39,6 @@ class NetworkManager {
                 }
             } catch {
                 handler(.failure(error))
-                print(error.localizedDescription)
             }
         }.resume()
     }
