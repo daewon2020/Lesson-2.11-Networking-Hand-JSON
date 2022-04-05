@@ -9,10 +9,11 @@ import UIKit
 
 class NetworkManager {
     static let shared = NetworkManager()
+    typealias Handler = (Result<YandexWeather, Error>) -> Void
     
     init() {}
     
-    func fetchWeather(completion: @escaping (_ yandexWeather: YandexWeather) ->()) {
+    func fetchWeather(handler: @escaping Handler)  {
         let urlWeather = DataManager.shared.urlWeather
         let urlWeatherParameters = DataManager.shared.urlWeatherParameters
         let keyAPI = DataManager.shared.keyAPI
@@ -27,15 +28,17 @@ class NetworkManager {
         
         URLSession.shared.dataTask(with: urlRequest) { data, _, error in
             guard let data = data else {
+                handler(.failure(error!))
                 print(error?.localizedDescription ?? "No error description")
                 return
             }
             do {
                 let yandexWeather = try JSONDecoder().decode(YandexWeather.self, from: data)
                 DispatchQueue.main.async {
-                    completion(yandexWeather)
+                    handler(.success(yandexWeather))
                 }
             } catch {
+                handler(.failure(error))
                 print(error.localizedDescription)
             }
         }.resume()

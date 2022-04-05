@@ -37,38 +37,15 @@ class WeatherViewController: UIViewController {
 extension WeatherViewController {
     
     private func refreshWeather() {
-        NetworkManager.shared.fetchWeather { yandexWeather in
-            guard let temp = yandexWeather.fact?.temp else { return }
-            guard let feelsLike = yandexWeather.fact?.feels_like else { return }
-            guard let image = yandexWeather.fact?.condition else { return }
-            guard let dayOfWeek = yandexWeather.now else { return }
-            guard let forecasts = yandexWeather.forecasts else { return }
-            guard let country = yandexWeather.geo_object?.country?.name else { return }
-            guard let district = yandexWeather.geo_object?.province?.name else { return }
-            guard let city = yandexWeather.geo_object?.locality?.name else { return }
-            
-            let wind = yandexWeather.fact?.windString
-            let humidity = yandexWeather.fact?.humidityString
-            let pressure = yandexWeather.fact?.pressureString
-            
-            self.locationLabel.text = "\(city), \(district), \(country)"
-            self.tempLabel.text = "\(temp) ˚C"
-            self.feelsLikeLabel.text = "Ощущается как: \(feelsLike) ˚C"
-            self.weatherImage.image = UIImage.init(named: image)
-            self.datetimeLabel.text = self.getDayOfWeek(from: dayOfWeek)
-            self.windLabel.text = wind
-            self.humidityLabel.text = humidity
-            self.pressureLabel.text = pressure
-            self.forecasts = forecasts
-            
-            self.activityIndicator.stopAnimating()
-            self.mainStackView.isHidden = false
-            
-            
-            self.forecastTableView.reloadData()
+        NetworkManager.shared.fetchWeather { result in
+            switch result {
+            case .success(let yandexWeather):
+                self.setUI(from: yandexWeather)
+            case .failure(let error):
+                self.showAlert(with: error.localizedDescription)
+            }
         }
-        
-        
+
     }
     
     private func getDayOfWeek(from dateTime: Double) -> String {
@@ -79,6 +56,46 @@ extension WeatherViewController {
         dateFormatter.setLocalizedDateFormatFromTemplate("EEEE")
         
         return dateFormatter.string(from: dateTimeFromString)
+    }
+    
+    private func showAlert(with message: String){
+        DispatchQueue.main.async {
+            let alertController = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
+            let alertAction = UIAlertAction(title: "OK", style: .default)
+            alertController.addAction(alertAction)
+            self.present(alertController, animated: true)
+        }
+    }
+    
+    private func setUI(from yandexWeather: YandexWeather) {
+        guard let temp = yandexWeather.fact?.temp else { return }
+        guard let feelsLike = yandexWeather.fact?.feels_like else { return }
+        guard let image = yandexWeather.fact?.condition else { return }
+        guard let dayOfWeek = yandexWeather.now else { return }
+        guard let forecasts = yandexWeather.forecasts else { return }
+        guard let country = yandexWeather.geo_object?.country?.name else { return }
+        guard let district = yandexWeather.geo_object?.province?.name else { return }
+        guard let city = yandexWeather.geo_object?.locality?.name else { return }
+        
+        let wind = yandexWeather.fact?.windString
+        let humidity = yandexWeather.fact?.humidityString
+        let pressure = yandexWeather.fact?.pressureString
+        
+        self.locationLabel.text = "\(city), \(district), \(country)"
+        self.tempLabel.text = "\(temp) ˚C"
+        self.feelsLikeLabel.text = "Ощущается как: \(feelsLike) ˚C"
+        self.weatherImage.image = UIImage.init(named: image)
+        self.datetimeLabel.text = self.getDayOfWeek(from: dayOfWeek)
+        self.windLabel.text = wind
+        self.humidityLabel.text = humidity
+        self.pressureLabel.text = pressure
+        self.forecasts = forecasts
+        
+        self.activityIndicator.stopAnimating()
+        self.mainStackView.isHidden = false
+        
+        
+        self.forecastTableView.reloadData()
     }
 }
 
