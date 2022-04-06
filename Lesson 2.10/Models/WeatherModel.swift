@@ -15,20 +15,12 @@ struct YandexWeather: Decodable {
 }
 
 struct GeoObject: Decodable {
-    let locality: Locality?
-    let province: Province?
-    let country: Country?
+    let locality: Location?
+    let province: Location?
+    let country: Location?
 }
 
-struct Locality: Decodable {
-    let name: String?
-}
-
-struct Province: Decodable {
-    let name: String?
-}
-
-struct Country: Decodable {
+struct Location: Decodable {
     let name: String?
 }
 
